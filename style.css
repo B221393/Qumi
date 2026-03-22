@@ -1,0 +1,407 @@
+:root {
+    --primary-bg: #0a0b1e;
+    --accent-color: #7c4dff;
+    --text-main: #e0e0e0;
+    --text-dim: #b0b0b0;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+    --status-applied: #42a5f5;
+    --status-screening: #ffb300;
+    --status-interview: #ab47bc;
+    --status-final: #ef5350;
+    --status-offer: #00e676;
+    --status-rejected: #757575;
+    --status-pending: #546e7a;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Outfit', 'Noto Sans JP', sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--text-main);
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background-image: linear-gradient(135deg, #0a0b1e 0%, #1a1040 50%, #0a0b1e 100%);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    padding: 40px 20px;
+}
+
+.background-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 30% 20%, rgba(124, 77, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(0, 230, 118, 0.08) 0%, transparent 50%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.glass-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1200px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: var(--glass-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    animation: fadeIn 1s ease-out;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo .icon {
+    font-size: 2rem;
+    color: var(--accent-color);
+}
+
+.logo h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+}
+
+nav a {
+    text-decoration: none;
+    color: var(--text-dim);
+    font-weight: 300;
+    transition: color 0.3s, border-bottom 0.3s;
+    padding-bottom: 4px;
+}
+
+nav a:hover,
+nav a.active {
+    color: var(--text-main);
+    border-bottom: 2px solid var(--accent-color);
+}
+
+.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.welcome-text h2 {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+}
+
+.accent {
+    color: var(--accent-color);
+}
+
+.status-pulse {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #00e676;
+    font-weight: 600;
+}
+
+.status-pulse::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background-color: #00e676;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 1.5s infinite;
+}
+
+.summary-bar {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px 24px;
+    min-width: 80px;
+}
+
+.summary-count {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.summary-label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+
+.companies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.company-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: transform 0.3s, background 0.3s, border-color 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.company-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    border-radius: 16px 0 0 16px;
+    transition: background 0.3s;
+}
+
+.company-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.company-card.status-未応募::before   { background: var(--status-pending); }
+.company-card.status-応募済み::before  { background: var(--status-applied); }
+.company-card.status-書類選考::before  { background: var(--status-screening); }
+.company-card.status-面接::before     { background: var(--status-interview); }
+.company-card.status-最終面接::before  { background: var(--status-final); }
+.company-card.status-内定::before     { background: var(--status-offer); }
+.company-card.status-お祈り::before   { background: var(--status-rejected); }
+
+.company-name {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding-left: 12px;
+}
+
+.company-industry {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    padding-left: 12px;
+    margin-bottom: 16px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 12px;
+}
+
+.status-badge.未応募   { background: rgba(84, 110, 122, 0.3); color: #90a4ae; border: 1px solid var(--status-pending); }
+.status-badge.応募済み  { background: rgba(66, 165, 245, 0.2); color: #90caf9; border: 1px solid var(--status-applied); }
+.status-badge.書類選考  { background: rgba(255, 179, 0, 0.2);  color: #ffe082; border: 1px solid var(--status-screening); }
+.status-badge.面接     { background: rgba(171, 71, 188, 0.2);  color: #ce93d8; border: 1px solid var(--status-interview); }
+.status-badge.最終面接  { background: rgba(239, 83, 80, 0.2);   color: #ef9a9a; border: 1px solid var(--status-final); }
+.status-badge.内定     { background: rgba(0, 230, 118, 0.2);   color: #a5d6a7; border: 1px solid var(--status-offer); }
+.status-badge.お祈り   { background: rgba(117, 117, 117, 0.2); color: #bdbdbd; border: 1px solid var(--status-rejected); }
+
+.company-memo {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    padding-left: 12px;
+    margin-top: 12px;
+    min-height: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+footer {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid var(--glass-border);
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+.modal {
+    width: 400px;
+    max-width: 90vw;
+    background: rgba(20, 20, 45, 0.95);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    animation: slideUp 0.3s ease-out;
+}
+
+.modal h3 {
+    font-size: 1.2rem;
+    color: var(--accent-color);
+    margin-bottom: 24px;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.modal-body label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+}
+
+.modal-body select,
+.modal-body textarea {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    color: var(--text-main);
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.3s;
+    resize: vertical;
+}
+
+.modal-body select:focus,
+.modal-body textarea:focus {
+    border-color: var(--accent-color);
+}
+
+.modal-body select option {
+    background: #1a1040;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-primary {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: background 0.3s;
+}
+
+.btn-primary:hover {
+    background: #6200ea;
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: background 0.3s, color 0.3s;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--text-main);
+}
+
+/* Glass card generic */
+.glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0%   { transform: scale(1); opacity: 1; }
+    50%  { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+    .glass-container { padding: 24px; }
+    header { flex-direction: column; gap: 16px; align-items: flex-start; }
+    .hero { flex-direction: column; }
+    .welcome-text h2 { font-size: 1.8rem; }
+    .companies-grid { grid-template-columns: 1fr; }
+}
