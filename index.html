@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qumi | 就活管理ダッシュボード</title>
+    <meta name="description" content="Qumi - 12社の就活進捗を管理するダッシュボード">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-overlay"></div>
+    <main class="glass-container">
+        <header>
+            <div class="logo">
+                <span class="icon">⚡</span>
+                <h1>Qumi</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">ダッシュボード</a></li>
+                    <li><a href="#companies">企業一覧</a></li>
+                    <li><a href="#stats">進捗</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <section class="hero">
+            <div class="welcome-text">
+                <h2>就活管理 | <span class="accent">12社</span></h2>
+                <p>ステータス: <span class="status-pulse" id="overall-status">進行中</span></p>
+            </div>
+            <div class="summary-bar">
+                <div class="summary-item">
+                    <span class="summary-count" id="count-applied">0</span>
+                    <span class="summary-label">応募済み</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-count" id="count-screening">0</span>
+                    <span class="summary-label">選考中</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-count" id="count-interview">0</span>
+                    <span class="summary-label">面接</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-count" id="count-offer">0</span>
+                    <span class="summary-label">内定</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="companies-grid" id="companies">
+        </section>
+
+        <footer>
+            <p>&copy; 2026 Qumi | 就活管理ダッシュボード</p>
+        </footer>
+    </main>
+
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal glass-card">
+            <h3 id="modal-company-name"></h3>
+            <div class="modal-body">
+                <label>ステータス</label>
+                <select id="modal-status">
+                    <option value="未応募">未応募</option>
+                    <option value="応募済み">応募済み</option>
+                    <option value="書類選考">書類選考</option>
+                    <option value="面接">面接</option>
+                    <option value="最終面接">最終面接</option>
+                    <option value="内定">内定</option>
+                    <option value="お祈り">お祈り</option>
+                </select>
+                <label>メモ</label>
+                <textarea id="modal-memo" rows="3" placeholder="メモを入力..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" id="modal-save">保存</button>
+                <button class="btn-secondary" id="modal-close">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
