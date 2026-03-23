@@ -92,7 +92,7 @@ export default function CyberGameScreen({ onBack }: { onBack: () => void }) {
         <View style={styles.gameArea}>
           <View style={styles.gameTitleBox}>
             <Shield color="#FF3B30" size={32} />
-            <Text style={styles.title}>VECTIS FIREWALL</Text>
+            <Text style={styles.title}>QUMI FIREWALL</Text>
             <Text style={styles.subtitle}>// UNAUTHORIZED ACCESS DETECTED //</Text>
           </View>
 
@@ -148,7 +148,7 @@ export default function CyberGameScreen({ onBack }: { onBack: () => void }) {
               <Text style={styles.secretBoxTitle}>DEVICE SECURE STORE</Text>
             </View>
             <Text style={styles.secretDataText}>
-              VECTIS_CORE_OVERRIDE="ENABLED"{'\n'}
+              QUMI_CORE_OVERRIDE="ENABLED"{'\n'}
               INTERNAL_IP="192.168.x.x"{'\n'}
               AUTH_STATUS="VERIFIED"
             </Text>

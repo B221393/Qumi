@@ -8,8 +8,8 @@ import Animated, { FadeInUp, Layout } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function NovelStudioScreen({ onBack }: { onBack: () => void }) {
-  const [novelTitle, setNovelTitle] = useState('VECTIS: The Awakening');
-  const [synopsis, setSynopsis] = useState('2026年、ある青年が自らの思考を拡張するためのOS「VECTIS」を組み上げ、世界を変える。');
+  const [novelTitle, setNovelTitle] = useState('QUMI: The Awakening');
+  const [synopsis, setSynopsis] = useState('2026年、ある青年が自らの思考を拡張するための統合思考OS「Qumi」を組み上げ、世界を変える。');
   const [currentChapter, setCurrentChapter] = useState(1);
   const [isAiWriting, setIsAiWriting] = useState(false);
   const [chapterText, setChapterText] = useState(

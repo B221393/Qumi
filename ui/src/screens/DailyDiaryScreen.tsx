@@ -10,7 +10,7 @@ const { width } = Dimensions.get('window');
 const LOGS = [
   { id: '1', time: '09:00 AM', title: 'Qumi OS Architecture', desc: 'UI設計とCLIエージェント層（抽象レイヤー）を独立Publicリポジトリとして分離構築。' },
   { id: '2', time: '10:30 AM', title: 'Physics UI Engine', desc: '指の弾きでコロコロ転がり吸い付く物理演算コアを実装。未知への探求心の具現化。' },
-  { id: '3', time: '16:00 PM', title: 'Observation Deep Dive', desc: '馬術部での経験や小売店での適応力を言語化。「仕組み化」ではなく「自己拡張システム」としてのトークを遂行。' },
+  { id: '3', time: '16:00 PM', title: 'Observation Deep Dive', desc: '某馬術部・大手小売店での適応経験を言語化。「自己拡張システム」としての思考フレームを強化し、コアスキルを体系化。' },
 ];
 
 export default function DailyDiaryScreen() {

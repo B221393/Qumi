@@ -26,7 +26,7 @@ export default function VectorBrainScreen({ onBack }: { onBack: () => void }) {
           id: '1',
           score: 0.942, // コサイン類似度
           title: 'STRATEGIC_INTEL_LOG のメモ',
-          snippet: `「...${query}について、次回Brexaの面接で語る際は、単なる仕組み化という言葉ではなく『未知への探求心』に言い換える...」`
+          snippet: `「...${query}について、次の面接で語る際は、『未知への探求心』と『自己拡張システム』としての思考フレームで表現する...」`
         },
         {
           id: '2',
