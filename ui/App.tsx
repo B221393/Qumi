@@ -6,7 +6,7 @@ import {
 import { 
   BrainCircuit, Gamepad2, GraduationCap, FileText, 
   MessageSquare, Camera, Shield, Mic, Calendar, 
-  Zap, Map, Settings 
+  BookOpen, Map, Settings 
 } from 'lucide-react-native';
 
 import AiMemoScreen from './src/screens/AiMemoScreen';
@@ -39,7 +39,7 @@ const SLOTS = [
   { id: '07', name: 'SECURITY', icon: Shield, color: '#FF3366', available: true },
   { id: '08', name: 'SOUND', icon: Mic, color: '#00D4FF', available: true },
   { id: '09', name: 'DAILY LOG', icon: Calendar, color: '#FF5C93', available: true },
-  { id: '10', name: 'NOVEL STUDIO', icon: Zap, color: '#FFAE00', available: true },
+  { id: '10', name: 'NOVEL STUDIO', icon: BookOpen, color: '#FFAE00', available: true },
   { id: '11', name: 'G-MAPS', icon: Map, color: '#00F5D4', available: true },
   { id: '12', name: 'CONFIG', icon: Settings, color: '#666666', available: true },
 ];
