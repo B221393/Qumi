@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Qumi",
+    "slug": "qumi-ui",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "experiments": {
+      "baseUrl": "/Qumi"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-font"
+    ]
+  }
+}
