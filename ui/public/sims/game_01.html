@@ -1,113 +1,47 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORBITAL EXPLORER | App #1</title>
-    <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: 'Inter', sans-serif; color: #fff; }
-        #ui { position: absolute; top: 20px; left: 20px; z-index: 100; pointer-events: none; }
-        h1 { font-size: 1.2rem; letter-spacing: 4px; color: #38bdf8; margin: 0; }
-        p { font-size: 0.8rem; opacity: 0.6; }
-        .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #000; z-index: 1000; transition: 0.5s; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intelligence Core Log | App #01</title>
+<style>
+  body { margin: 0; background: #050505; color: #00f0ff; font-family: 'monospace'; padding: 20px; }
+  .header { border-bottom: 1px solid #00f0ff; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+  h1 { font-size: 1.2rem; margin: 0; letter-spacing: 2px; }
+  .skill-card { background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+  .skill-name { font-weight: bold; color: #fff; margin-bottom: 5px; font-size: 0.9rem; }
+  .skill-desc { font-size: 0.8rem; opacity: 0.7; line-height: 1.4; }
+  .tag { font-size: 0.6rem; background: #00f0ff; color: #000; padding: 2px 6px; border-radius: 4px; margin-right: 5px; }
+  .empty { text-align: center; margin-top: 50px; opacity: 0.5; font-size: 0.8rem; }
+</style>
 </head>
 <body>
-    <div id="ui">
-        <h1>ORBITAL EXPLORER v1.0</h1>
-        <p>AUTONOMOUS GEN: APP #1</p>
-        <p>ドラッグ: 回転 | スクロール: ズーム</p>
+  <div class="header">
+    <h1>INTEL_CORE_LOG</h1>
+    <span style="font-size: 0.7rem;">VERSION 1.0.4</span>
+  </div>
+  
+  <div id="skill-list">
+    <!-- MetaClaw Skills will be displayed here -->
+    <div class="skill-card">
+      <div class="skill-name"><span class="tag">ACTIVE</span> UI_MODERNIZATION</div>
+      <div class="skill-desc">タブベースのカテゴリー分けと実用的なデータ表示への移行を推奨するスキル。</div>
     </div>
-    <div class="loading" id="loader">INITIALIZING STARFIELD...</div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script>
-        let scene, camera, renderer, controls;
-        const planets = [];
+    <div class="skill-card">
+      <div class="skill-name"><span class="tag">LEARNED</span> MOBILE_TOUCH_INIT</div>
+      <div class="skill-desc">モバイル環境におけるタッチ操作の優先順位付けと、キャンバスの最適化手順。</div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-name"><span class="tag">SYSTEM</span> GITHUB_SYNC_FLOW</div>
+      <div class="skill-desc">MCPツールを用いたリモートリポジトリへの自動デプロイメントパイプライン。</div>
+    </div>
+  </div>
 
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
-            camera.position.z = 100;
+  <p class="empty">// WAITING FOR NEW METACLAW LEARNING SIGNALS...</p>
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            document.body.appendChild(renderer.domElement);
-
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-
-            // Lights
-            const ambient = new THREE.AmbientLight(0x404040, 1.5);
-            scene.add(ambient);
-
-            const sunLight = new THREE.PointLight(0xffffff, 2, 1000);
-            scene.add(sunLight);
-
-            // Sun
-            const sunGeo = new THREE.SphereGeometry(15, 32, 32);
-            const sunMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
-            const sun = new THREE.Mesh(sunGeo, sunMat);
-            scene.add(sun);
-
-            // Starfield
-            const starGeo = new THREE.BufferGeometry();
-            const starCount = 5000;
-            const posArray = new Float32Array(starCount * 3);
-            for(let i=0; i<starCount*3; i++) {
-                posArray[i] = (Math.random() - 0.5) * 2000;
-            }
-            starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-            const starMat = new THREE.PointsMaterial({ size: 0.7, color: 0xffffff });
-            const stars = new THREE.Points(starGeo, starMat);
-            scene.add(stars);
-
-            // Planets
-            createPlanet(30, 0.01, 3, 0x38bdf8); // Blue
-            createPlanet(55, 0.008, 5, 0xef4444); // Red
-            createPlanet(85, 0.005, 8, 0x10b981); // Green
-
-            document.getElementById('loader').style.opacity = '0';
-            setTimeout(() => document.getElementById('loader').remove(), 500);
-
-            animate();
-        }
-
-        function createPlanet(orbit, speed, size, color) {
-            const group = new THREE.Group();
-            const geo = new THREE.SphereGeometry(size, 32, 32);
-            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.5, metalness: 0.5 });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.x = orbit;
-            group.add(mesh);
-            scene.add(group);
-            planets.push({ group, speed });
-
-            // Orbit line
-            const orbitGeo = new THREE.RingGeometry(orbit - 0.1, orbit + 0.1, 64);
-            const orbitMat = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.1, transparent: true, side: THREE.DoubleSide });
-            const orbitCircle = new THREE.Mesh(orbitGeo, orbitMat);
-            orbitCircle.rotation.x = Math.PI / 2;
-            scene.add(orbitCircle);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            planets.forEach(p => {
-                p.group.rotation.y += p.speed;
-            });
-            renderer.render(scene, camera);
-        }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        init();
-    </script>
+  <script>
+    // Logic to fetch actual MetaClaw skills could be added here
+    console.log("Intelligence Core Log initialized.");
+  </script>
 </body>
 </html>
