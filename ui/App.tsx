@@ -1,127 +1,132 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, SafeAreaView,
-  StatusBar, Dimensions, ScrollView, Platform
+  StatusBar, Dimensions, ScrollView, Platform, TextInput, Modal, ActivityIndicator
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { 
   BrainCircuit, Gamepad2, GraduationCap, FileText, 
   MessageSquare, Camera, Shield, Mic, Calendar, 
-  Zap, Map, Settings 
+  Zap, Map, Settings, Sparkles, BookOpen, Send, X
 } from 'lucide-react-native';
-
-import AiMemoScreen from './src/screens/AiMemoScreen';
-import EducationScreen from './src/screens/EducationScreen';
-import VectorBrainScreen from './src/screens/VectorBrainScreen';
-import CyberGameScreen from './src/screens/CyberGameScreen';
-import DailyDiaryScreen from './src/screens/DailyDiaryScreen';
-import NovelStudioScreen from './src/screens/NovelStudioScreen';
-import LocalLlmScreen from './src/screens/LocalLlmScreen';
-import VisionScreen from './src/screens/VisionScreen';
-import SecurityScreen from './src/screens/SecurityScreen';
-import SoundScreen from './src/screens/SoundScreen';
-import GMapsScreen from './src/screens/GMapsScreen';
-import ConfigScreen from './src/screens/ConfigScreen';
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import Animated, { FadeIn, FadeInDown, useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSpring } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSpring, Layout } from 'react-native-reanimated';
 import { useFonts, Outfit_400Regular, Outfit_700Bold, Outfit_900Black } from '@expo-google-fonts/outfit';
+import { Animated as RNAnimated, PanResponder } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
+const BASE = '/Qumi';
+const API_BASE = 'http://localhost:8000'; // Qumi Backend Hub
 
+// 16 Core OS Slots (Matched with Integrated_System_Specs.md)
 const SLOTS = [
-  { id: '01', name: 'VECTOR BRAIN', icon: BrainCircuit, color: '#00F0FF', available: true },
-  { id: '02', name: 'CYBER GAME', icon: Gamepad2, color: '#FF003C', available: true },
-  { id: '03', name: 'TUTOR AI', icon: GraduationCap, color: '#00FF99', available: true },
-  { id: '04', name: 'AI MEMO', icon: FileText, color: '#B026FF', available: true },
-  { id: '05', name: 'LOCAL LLM', icon: MessageSquare, color: '#FCEE09', available: true },
-  { id: '06', name: 'VISION', icon: Camera, color: '#00FF66', available: true },
-  { id: '07', name: 'SECURITY', icon: Shield, color: '#FF3366', available: true },
-  { id: '08', name: 'SOUND', icon: Mic, color: '#00D4FF', available: true },
-  { id: '09', name: 'DAILY LOG', icon: Calendar, color: '#FF5C93', available: true },
-  { id: '10', name: 'NOVEL STUDIO', icon: Zap, color: '#FFAE00', available: true },
-  { id: '11', name: 'G-MAPS', icon: Map, color: '#00F5D4', available: true },
-  { id: '12', name: 'CONFIG', icon: Settings, color: '#666666', available: true },
+  // INTEL LAYER (知能層)
+  { id: '01', name: 'ORBITAL EX',    icon: BrainCircuit,   color: '#00F0FF', sim: 'game_01', layer: 'INTEL' },
+  { id: '04', name: 'NEURAL CONN',   icon: Zap,             color: '#B026FF', sim: 'game_04', layer: 'INTEL' },
+  { id: '09', name: 'KNOWLEDGE NEB', icon: BookOpen,        color: '#FF5C93', sim: 'game_09', layer: 'INTEL' },
+  { id: '14', name: 'QUANTUM FLOCK', icon: Sparkles,        color: '#00F0FF', sim: 'game_14', layer: 'INTEL' },
+  
+  // THOUGHT LAYER (思考層)
+  { id: '10', name: 'SIGNAL BRIDGE', icon: MessageSquare,   color: '#FF00B3', sim: 'game_10', layer: 'THOUGHT' },
+  { id: '11', name: 'BANDWIDTH T',   icon: Zap,             color: '#00D4FF', sim: 'game_11', layer: 'THOUGHT' },
+  { id: '12', name: 'NEXUS SRCH',    icon: Map,             color: '#FF9E00', sim: 'game_12', layer: 'THOUGHT' },
+  { id: '16', name: 'NEXUS HACK',    icon: Shield,          color: '#00FF99', sim: 'game_16', layer: 'THOUGHT' },
+  
+  // SENSE LAYER (知覚層)
+  { id: '06', name: 'FLUID VORTEX',  icon: Camera,          color: '#FF0055', sim: 'game_06', layer: 'SENSE' },
+  { id: '07', name: 'SENSOR HUB',    icon: Shield,          color: '#444444', sim: 'game_07', layer: 'SENSE' },
+  { id: '08', name: 'VOXEL EXP',     icon: Mic,             color: '#00D4FF', sim: 'game_08', layer: 'SENSE' },
+  { id: '15', name: 'FLUID TOPO',    icon: Camera,          color: '#FF00B3', sim: 'game_15', layer: 'SENSE' },
+
+  // SYSTEM LAYER (システム層)
+  { id: '02', name: 'NEON CITY',     icon: Gamepad2,        color: '#00FF99', sim: 'game_02', layer: 'SYSTEM' },
+  { id: '03', name: 'TERRAIN VOID',  icon: GraduationCap,   color: '#00FF99', sim: 'game_03', layer: 'SYSTEM' },
+  { id: '05', name: 'PULSE DYNAM',   icon: Zap,             color: '#FF9E00', sim: 'game_05', layer: 'SYSTEM' },
+  { id: '13', name: 'INTEL MAP',     icon: Map,             color: '#00CC44', sim: 'game_13', layer: 'SYSTEM' },
 ];
 
-const AppIcon = ({ slot, index, isDock = false, onPress }: { slot: any; index: number; isDock?: boolean; onPress: () => void }) => {
+const AppIcon = ({ slot, index, onPress }: { slot: any; index: number; onPress: () => void }) => {
   const Icon = slot.icon;
   const scale = useSharedValue(1);
+  const translateY = useSharedValue(0);
 
-  const handlePressIn = () => { scale.value = withSpring(0.85, { damping: 15, stiffness: 400 }); };
-  const handlePressOut = () => { scale.value = withSpring(1, { damping: 15, stiffness: 300 }); };
+  useEffect(() => {
+    translateY.value = withRepeat(
+      withTiming(index % 2 === 0 ? -4 : 4, {
+        duration: 2000 + (index * 200),
+        easing: Easing.inOut(Easing.ease),
+      }),
+      -1,
+      true
+    );
+  }, []);
 
+  const handlePressIn = () => { scale.value = withSpring(0.82, { damping: 12, stiffness: 500 }); };
+  const handlePressOut = () => { scale.value = withSpring(1, { damping: 12, stiffness: 300 }); };
+  
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }]
+    transform: [
+      { scale: scale.value },
+      { translateY: translateY.value }
+    ]
   }));
 
-  const iconBg = slot.available ? [`${slot.color}DD`, `${slot.color}88`] : ['#222', '#111'];
-
   return (
-    <Animated.View entering={FadeInDown.delay(index * 40).springify().damping(15)} style={styles.appIconWrapper}>
-      <TouchableOpacity 
-        activeOpacity={1}
-        onPressIn={slot.available ? handlePressIn : undefined}
-        onPressOut={slot.available ? handlePressOut : undefined}
-        onPress={slot.available ? onPress : undefined}
-        disabled={!slot.available}
-        style={{ alignItems: 'center' }}
-      >
+    <Animated.View entering={FadeInDown.delay(index * 50).springify().damping(14)} style={styles.appIconWrapper}>
+      <TouchableOpacity activeOpacity={1} onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={onPress} style={{ alignItems: 'center' }}>
         <Animated.View style={[styles.appIconBox, animatedStyle]}>
-          <LinearGradient colors={iconBg} style={styles.appIconGradient}>
-            <Icon color={slot.available ? '#FFFFFF' : '#555'} size={isDock ? 30 : 28} strokeWidth={1.5} />
+          <LinearGradient colors={[`${slot.color}DD`, `${slot.color}55`]} style={styles.appIconGradient}>
+            <Icon color="#FFFFFF" size={26} strokeWidth={1.5} />
           </LinearGradient>
-          {!slot.available && <View style={styles.lockedIconOverlay} />}
         </Animated.View>
-        {!isDock && (
-          <Text style={[styles.appLabel, !slot.available && { color: '#666' }]} numberOfLines={1}>
-            {slot.name.replace('VECTOR ', 'V-').replace('STUDIO', '')}
-          </Text>
-        )}
+        <Text style={styles.appLabel} numberOfLines={1}>{slot.name}</Text>
       </TouchableOpacity>
     </Animated.View>
   );
 };
 
-// ─── 新規実装：画面をコロコロ転がる・ドラッグできる「統合思考コア」の物理演算UI ───
-import { Animated as RNAnimated, PanResponder } from 'react-native';
-
-const DraggableCore = () => {
-  const pan = useRef(new RNAnimated.ValueXY({ x: 0, y: height / 3 })).current;
+const SlotCluster = ({ title, layer, onOpenApp }: { title: string, layer: string, onOpenApp: (id: string) => void }) => {
+  const layerSlots = SLOTS.filter(s => s.layer === layer);
   
+  return (
+    <View style={styles.clusterContainer}>
+      <Text style={styles.clusterTitle}>// {title}</Text>
+      <BlurView intensity={20} tint="dark" style={styles.clusterBlur}>
+        <View style={styles.clusterGrid}>
+          {layerSlots.map((slot, index) => (
+            <AppIcon key={slot.id} slot={slot} index={index} onPress={() => onOpenApp(slot.id)} />
+          ))}
+        </View>
+      </BlurView>
+    </View>
+  );
+};
+
+const DraggableCore = ({ onPress }: { onPress: () => void }) => {
+  const pan = useRef(new RNAnimated.ValueXY({ x: 0, y: height / 2.5 })).current;
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        pan.setOffset({ x: (pan.x as any)._value, y: (pan.y as any)._value });
-        pan.setValue({ x: 0, y: 0 });
-      },
+      onPanResponderGrant: () => { pan.setOffset({ x: (pan.x as any)._value, y: (pan.y as any)._value }); pan.setValue({ x: 0, y: 0 }); },
       onPanResponderMove: RNAnimated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
-      onPanResponderRelease: (e, gestureState) => {
+      onPanResponderRelease: (_, gs) => {
         pan.flattenOffset();
-        const endX = gestureState.moveX > width / 2 ? width / 2 - 40 : -width / 2 + 40;
-        RNAnimated.spring(pan, {
-          toValue: { x: endX, y: (pan.y as any)._value + gestureState.vy * 50 },
-          friction: 6,
-          tension: 40,
-          useNativeDriver: false
-        }).start();
+        if (Math.abs(gs.dx) < 5 && Math.abs(gs.dy) < 5) {
+          onPress();
+        }
+        RNAnimated.spring(pan, { toValue: { x: gs.moveX > width / 2 ? width / 2 - 40 : -width / 2 + 40, y: (pan.y as any)._value + gs.vy * 50 }, friction: 6, tension: 40, useNativeDriver: false }).start();
       }
     })
   ).current;
 
   return (
-    <RNAnimated.View
-      {...panResponder.panHandlers}
-      style={[
-        pan.getLayout(),
-        { position: 'absolute', top: '50%', left: '50%', zIndex: 999, elevation: 999 }
-      ]}
-    >
-      <View style={{ transform: [{ translateX: -30 }, { translateY: -30 }] }}>
+    <RNAnimated.View {...panResponder.panHandlers} style={[pan.getLayout(), { position: 'absolute', top: '50%', left: '50%', zIndex: 999 }]}>
+      <View style={{ transform: [{ translateX: -35 }, { translateY: -35 }] }}>
         <BlurView intensity={100} tint="dark" style={styles.floatingCore}>
           <LinearGradient colors={['#A020F0', '#00D4FF']} style={styles.coreGradient}>
-            <Sparkles color="#FFF" size={24} />
+            <Sparkles color="#FFF" size={28} />
           </LinearGradient>
         </BlurView>
         <View style={styles.coreGlow} />
@@ -130,77 +135,143 @@ const DraggableCore = () => {
   );
 };
 
+const ThoughtModal = ({ visible, onClose }: { visible: boolean, onClose: () => void }) => {
+  const [thought, setThought] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+
+  const handleDelegate = async () => {
+    if (!thought) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/delegate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ thought })
+      });
+      const data = await response.json();
+      setResult(data.result);
+    } catch (error) {
+      console.error(error);
+      alert('Qumi Backend Hub Offline\n(Please start START_INTEGRATED_OS_CORE.bat)');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="fade">
+      <BlurView intensity={90} tint="dark" style={styles.modalOverlay}>
+        <SafeAreaView style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>THOUGHT CAPTURE</Text>
+            <TouchableOpacity onPress={onClose}><X color="#FFF" size={24} /></TouchableOpacity>
+          </View>
+          
+          {!result ? (
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="魂のフワッとしたアイディアを入力..."
+                placeholderTextColor="rgba(255,255,255,0.4)"
+                value={thought}
+                onChangeText={setThought}
+                multiline
+              />
+              <TouchableOpacity 
+                style={[styles.sendButton, !thought && { opacity: 0.5 }]} 
+                onPress={handleDelegate}
+                disabled={loading || !thought}
+              >
+                {loading ? <ActivityIndicator color="#FFF" /> : <Send color="#FFF" size={20} />}
+                <Text style={styles.sendButtonText}>{loading ? 'DELEGATING...' : 'DELEGATE TO AGENT'}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <ScrollView style={styles.resultContainer}>
+              <Text style={styles.resultTitle}>// DELEGATION COMPLETE</Text>
+              <Text style={styles.resultJson}>{JSON.stringify(result, null, 2)}</Text>
+              <TouchableOpacity style={styles.resetButton} onPress={() => {setResult(null); setThought('');}}>
+                <Text style={styles.resetButtonText}>NEW THOUGHT</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          )}
+        </SafeAreaView>
+      </BlurView>
+    </Modal>
+  );
+};
+
+const SimViewer = ({ simName, onBack }: { simName: string; onBack: () => void }) => {
+  const simUrl = `${BASE}/sims/${simName}.html`;
+  return (
+    <View style={{ flex: 1, backgroundColor: '#000' }}>
+      <TouchableOpacity style={styles.floatingBackButton} onPress={onBack} activeOpacity={0.7}>
+        <BlurView intensity={80} tint="dark" style={styles.backButtonBlur}>
+          <Text style={styles.floatingBackText}>← System Home</Text>
+        </BlurView>
+      </TouchableOpacity>
+      {Platform.OS === 'web' ? (
+        <iframe 
+          src={simUrl} 
+          style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#000' } as any}
+          allow="accelerometer; autoplay; camera; microphone"
+        />
+      ) : (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#FFF', fontSize: 16 }}>Web Only Module</Text>
+        </View>
+      )}
+    </View>
+  );
+};
+
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<'home' | 'memo' | 'tutor' | 'vector' | 'game' | 'diary' | 'novel' | 'llm' | 'vision' | 'security' | 'sound' | 'maps' | 'config'>('home');
-
+  const [currentScreen, setCurrentScreen] = useState<string>('home');
+  const [modalVisible, setModalVisible] = useState(false);
   const [fontsLoaded] = useFonts({ Outfit_400Regular, Outfit_700Bold, Outfit_900Black });
-
-  const orb1X = useSharedValue(0); 
+  
+  const orb1X = useSharedValue(0);
   const orb1Y = useSharedValue(0);
 
   useEffect(() => {
-    orb1X.value = withRepeat(withTiming(150, { duration: 20000, easing: Easing.inOut(Easing.ease) }), -1, true);
-    orb1Y.value = withRepeat(withTiming(-150, { duration: 18000, easing: Easing.inOut(Easing.ease) }), -1, true);
+    orb1X.value = withRepeat(withTiming(100, { duration: 25000, easing: Easing.inOut(Easing.ease) }), -1, true);
+    orb1Y.value = withRepeat(withTiming(-100, { duration: 22000, easing: Easing.inOut(Easing.ease) }), -1, true);
+
+    const enforceUpdate = async () => {
+      if (Platform.OS !== 'web') return;
+      try {
+        const r = await fetch(`${BASE}/version.json?t=${Date.now()}`);
+        const d = await r.json();
+        const cur = await AsyncStorage.getItem('@qumi_pwa_version');
+        if (cur !== d.version) {
+          await AsyncStorage.setItem('@qumi_pwa_version', d.version);
+          if (cur !== null) window.location.reload(true);
+        }
+      } catch (e) {}
+    };
+    enforceUpdate();
   }, []);
 
   const orb1Style = useAnimatedStyle(() => ({ transform: [{ translateX: orb1X.value }, { translateY: orb1Y.value }] }));
 
   if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: '#000' }} />;
 
-  const DOCK_APPS = SLOTS.filter(s => ['04', '03', '01', '02'].includes(s.id));
-  const HOME_APPS = SLOTS.filter(s => !['04', '03', '01', '02'].includes(s.id));
-
-  const handleOpenApp = (id: string) => {
-    if (id === '04') setCurrentScreen('memo');
-    if (id === '03') setCurrentScreen('tutor');
-    if (id === '01') setCurrentScreen('vector');
-    if (id === '02') setCurrentScreen('game');
-    if (id === '09') setCurrentScreen('diary');
-    if (id === '10') setCurrentScreen('novel');
-    if (id === '05') setCurrentScreen('llm');
-    if (id === '06') setCurrentScreen('vision');
-    if (id === '07') setCurrentScreen('security');
-    if (id === '08') setCurrentScreen('sound');
-    if (id === '11') setCurrentScreen('maps');
-    if (id === '12') setCurrentScreen('config');
-  };
-
   if (currentScreen !== 'home') {
-    return (
-      <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1, backgroundColor: '#000' }}>
-        <TouchableOpacity style={styles.floatingBackButton} onPress={() => setCurrentScreen('home')} activeOpacity={0.7}>
-          <BlurView intensity={80} tint="dark" style={styles.backButtonBlur}>
-            <Text style={styles.floatingBackText}>← Home</Text>
-          </BlurView>
-        </TouchableOpacity>
-
-        {currentScreen === 'memo' && <AiMemoScreen />}
-        {currentScreen === 'tutor' && <EducationScreen onBack={() => setCurrentScreen('home')} />}
-        {currentScreen === 'vector' && <VectorBrainScreen onBack={() => setCurrentScreen('home')} />}
-        {currentScreen === 'game' && <CyberGameScreen onBack={() => setCurrentScreen('home')} />}
-        {currentScreen === 'diary' && <DailyDiaryScreen />}
-        {currentScreen === 'novel' && <NovelStudioScreen onBack={() => setCurrentScreen('home')} />}
-        {currentScreen === 'llm' && <LocalLlmScreen />}
-        {currentScreen === 'vision' && <VisionScreen />}
-        {currentScreen === 'security' && <SecurityScreen />}
-        {currentScreen === 'sound' && <SoundScreen />}
-        {currentScreen === 'maps' && <GMapsScreen />}
-        {currentScreen === 'config' && <ConfigScreen />}
-      </Animated.View>
-    );
+    const slot = SLOTS.find(s => s.id === currentScreen);
+    if (slot) {
+      return <SimViewer simName={slot.sim} onBack={() => setCurrentScreen('home')} />;
+    }
   }
 
-  // Web・PCブラウザ用の横幅最適化フラグ
   const isPC = width > 800;
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
-      
       <Animated.View style={[styles.glowOrb, styles.orb1, orb1Style]} />
       <View style={styles.wallpaperOverlay} />
 
-      {/* PC版ではステータスバーをMac風に少し控えめに */}
       <View style={[styles.iosStatusBar, isPC && { paddingHorizontal: 40, paddingTop: 20 }]}>
         <Text style={styles.iosTimeText}>QUMI : INTEGRATED OS</Text>
         <View style={styles.iosStatusIcons}>
@@ -209,63 +280,66 @@ export default function App() {
         </View>
       </View>
 
-      {/* ブラウザ版は中央にUIを寄せて超絶高級感を出す */}
       <ScrollView contentContainerStyle={isPC ? styles.pcHomeGrid : styles.homeGrid} showsVerticalScrollIndicator={false}>
-        {HOME_APPS.map((slot, index) => (
-          <AppIcon key={slot.id} slot={slot} index={index} onPress={() => handleOpenApp(slot.id)} />
-        ))}
+        <View style={isPC ? styles.pcClusterWrapper : {}}>
+          <SlotCluster title="THOUGHT LAYER" layer="THOUGHT" onOpenApp={setCurrentScreen} />
+          <SlotCluster title="INTEL LAYER" layer="INTEL" onOpenApp={setCurrentScreen} />
+          <SlotCluster title="SENSE LAYER" layer="SENSE" onOpenApp={setCurrentScreen} />
+          <SlotCluster title="SYSTEM LAYER" layer="SYSTEM" onOpenApp={setCurrentScreen} />
+        </View>
       </ScrollView>
 
-      {/* PC版ではDockをMac風に中央固定、スマホは全幅 */}
-      <View style={[styles.dockContainer, isPC && styles.pcDockContainer]}>
-        <BlurView intensity={80} tint="dark" style={styles.dockBlur}>
-          <View style={styles.dockInner}>
-            {DOCK_APPS.map((slot, index) => (
-              <AppIcon key={slot.id} slot={slot} index={index} isDock onPress={() => handleOpenApp(slot.id)} />
-            ))}
-          </View>
-        </BlurView>
-      </View>
-
-      {/* 🔮 物理エンジンで転がる「統合思考コア」 */}
-      <DraggableCore />
-
+      <DraggableCore onPress={() => setModalVisible(true)} />
+      <ThoughtModal visible={modalVisible} onClose={() => setModalVisible(false)} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
-  glowOrb: { position: 'absolute', width: 400, height: 400, borderRadius: 200, opacity: 0.6 },
-  orb1: { top: -100, left: -100, backgroundColor: '#3b82f6', filter: 'blur(100px)' as any },
-  wallpaperOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 0 },
+  glowOrb: { position: 'absolute', width: 500, height: 500, borderRadius: 250, opacity: 0.4 },
+  orb1: { top: -150, left: -150, backgroundColor: '#00D4FF', filter: 'blur(120px)' as any },
+  wallpaperOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 0 },
   
   iosStatusBar: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 16, zIndex: 10 },
-  iosTimeText: { color: '#FFF', fontSize: 13, fontWeight: 'bold', fontFamily: 'Outfit_700Bold', letterSpacing: 1 },
+  iosTimeText: { color: '#FFF', fontSize: 13, fontWeight: 'bold', fontFamily: 'Outfit_700Bold', letterSpacing: 2 },
   iosStatusIcons: { flexDirection: 'row', alignItems: 'center' },
   iosSignalText: { color: '#FFF', fontSize: 11, fontWeight: '600', marginLeft: 6 },
   pulseDot: { width: 6, height: 6, borderRadius: 3, shadowColor: '#00FF99', shadowOpacity: 1, shadowRadius: 5 },
   
-  homeGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, paddingTop: 40, zIndex: 10, paddingBottom: 150 },
-  pcHomeGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', width: 800, alignSelf: 'center', paddingTop: 60, paddingBottom: 150 },
-  
-  appIconWrapper: { width: '25%', alignItems: 'center', marginBottom: 28 }, 
-  appIconBox: { width: width > 600 ? 76 : 64, height: width > 600 ? 76 : 64, borderRadius: 18, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 8 },
+  homeGrid: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 150, zIndex: 10 },
+  pcHomeGrid: { width: '100%', alignItems: 'center', paddingTop: 40, paddingBottom: 150, zIndex: 10 },
+  pcClusterWrapper: { width: 800, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+
+  clusterContainer: { marginBottom: 28, width: width > 800 ? '48%' : '100%' },
+  clusterTitle: { color: '#00D4FF', fontSize: 11, fontFamily: 'Outfit_900Black', letterSpacing: 3, marginBottom: 8, opacity: 0.8 },
+  clusterBlur: { borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  clusterGrid: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 20, paddingHorizontal: 10, backgroundColor: 'rgba(15, 23, 42, 0.4)' },
+
+  appIconWrapper: { alignItems: 'center', width: '30%' }, 
+  appIconBox: { width: width > 600 ? 76 : 64, height: width > 600 ? 76 : 64, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   appIconGradient: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  lockedIconOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
-  appLabel: { color: '#FFF', fontSize: 11, fontFamily: 'Outfit_400Regular', marginTop: 8, textAlign: 'center', width: '120%' },
-  
-  dockContainer: { position: 'absolute', bottom: Platform.OS === 'ios' ? 30 : 20, left: 16, right: 16, borderRadius: 32, overflow: 'hidden', zIndex: 20 },
-  pcDockContainer: { width: 400, alignSelf: 'center', left: undefined, right: undefined, bottom: 30, borderRadius: 40 },
-  dockBlur: { paddingVertical: 18, paddingHorizontal: 12 },
-  dockInner: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
+  appLabel: { color: '#FFF', fontSize: 10, fontFamily: 'Outfit_700Bold', marginTop: 10, textAlign: 'center', opacity: 0.8, letterSpacing: 1 },
   
   floatingBackButton: { position: 'absolute', top: Platform.OS === 'web' ? 20 : 50, left: 20, zIndex: 100, borderRadius: 20, overflow: 'hidden' },
-  backButtonBlur: { paddingHorizontal: 16, paddingVertical: 10, backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 20 },
+  backButtonBlur: { paddingHorizontal: 16, paddingVertical: 10, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   floatingBackText: { color: '#FFF', fontSize: 13, fontWeight: 'bold' },
+  
+  floatingCore: { width: 70, height: 70, borderRadius: 35, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(0, 212, 255, 0.4)' },
+  coreGradient: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center', opacity: 0.9 },
+  coreGlow: { position: 'absolute', top: -15, left: -15, right: -15, bottom: -15, borderRadius: 50, backgroundColor: '#A020F0', opacity: 0.4, filter: 'blur(15px)' as any, zIndex: -1 },
 
-  // コロコロ転がる物理オーブのスタイル
-  floatingCore: { width: 60, height: 60, borderRadius: 30, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
-  coreGradient: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center', opacity: 0.8 },
-  coreGlow: { position: 'absolute', top: -10, left: -10, right: -10, bottom: -10, borderRadius: 40, backgroundColor: '#00D4FF', opacity: 0.3, filter: 'blur(10px)' as any, zIndex: -1 }
+  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  modalContent: { width: width > 600 ? 500 : '90%', maxHeight: '80%', backgroundColor: 'rgba(15, 23, 42, 0.8)', borderRadius: 32, padding: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  modalTitle: { color: '#00D4FF', fontSize: 14, fontFamily: 'Outfit_900Black', letterSpacing: 3 },
+  inputContainer: { width: '100%' },
+  textInput: { color: '#FFF', fontSize: 16, fontFamily: 'Outfit_400Regular', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 16, padding: 20, minHeight: 150, textAlignVertical: 'top', marginBottom: 20 },
+  sendButton: { backgroundColor: '#A020F0', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 18, borderRadius: 16 },
+  sendButtonText: { color: '#FFF', fontSize: 13, fontFamily: 'Outfit_700Bold', marginLeft: 10, letterSpacing: 1 },
+  resultContainer: { width: '100%' },
+  resultTitle: { color: '#00FF99', fontSize: 12, fontFamily: 'Outfit_900Black', marginBottom: 12 },
+  resultJson: { color: '#00FF99', fontSize: 12, fontFamily: 'monospace', backgroundColor: 'rgba(0,0,0,0.3)', padding: 16, borderRadius: 12 },
+  resetButton: { marginTop: 20, padding: 16, alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
+  resetButtonText: { color: '#AAA', fontSize: 11, fontFamily: 'Outfit_700Bold', letterSpacing: 2 }
 });
